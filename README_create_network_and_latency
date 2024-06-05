@@ -1,0 +1,17 @@
+Pseudocode
+*1. Node Class:
+*
+Add bandwidth attribute.
+Add a dictionary to store neighbors and their respective latencies.
+*2. Latency Calculation:
+*
+For each link (i, j):
+Assign ρij from a uniform distribution [10ms, 500ms].
+Assign cij based on the bandwidth of nodes i and j.
+Calculate dij using exponential distribution.
+*3. Network Creation:
+*
+Modify create_network to include latency calculations during link establishment.
+----------------------------------------------------------------------------------------------
+(FOR TESTING OF CODE)
+this code creates the network and assigns the latencies to them , and also after checking if the network is connected , if it is not connected then print that statement why it isn't ( eg. node 2 has less than 2 connections ) and makes 100 attempts of creating the network , if it isn't able to create in 100 attempts ( but everytime it is able to make in 100 attempts for the given example case of n=10 ) then it exits the loop and says failed to create a network after 100 attempts 
