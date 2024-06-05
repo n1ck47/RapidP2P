@@ -1,7 +1,8 @@
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.exceptions import InvalidSignature
+from ecdsa import SigningKey, SECP256k1
+
+from constants import COMM_SIZE
+from constants import N
+import vrf
 
 class Peer:
     def __init__(self, env, bandwidth):
@@ -12,26 +13,38 @@ class Peer:
         self.prv_key = None
 
     def gen_key_pair(self):
-        private_value = 0x63bd3b01c5ce749d87f5f7481232a93540acdb0f7b5c014ecd9cd32b041d6f33
-        curve = ec.SECP256R1()
+        self.prv_key = SigningKey.generate(curve=SECP256k1)
+        self.pub_key = self.prv_key.get_verifying_key()
 
-        self.prv_key = ec.derive_private_key(private_value, curve, default_backend())
-        self.pub_key = self.prv_key.public_key()
-
-    def sign(self, data):
-        signature_algorithm = ec.ECDSA(hashes.SHA256())
-        return self.prv_key.sign(data.encode('utf-8'), signature_algorithm)
+    def sign(self, message):
+        return self.prv_key.sign(message)
     
-    def verify_sign(self, data, signature):
-        signature_algorithm = ec.ECDSA(hashes.SHA256())
+    def verify_sign(self, message, signature):
         try:
-            self.pub_key.verify(signature, data.encode('utf-8'), signature_algorithm)
-            print('Verification OK')
-        except InvalidSignature:
-            print('Verification failed')
+            self.pub_key.verify(signature, message)
+            return True
+        except:
+            return False
 
-    def get_id(self):
-        pass
+    def register(self, sc):
+        self.id = sc.assign_id(self.pub_key)
+    
+    def get_id(self, sc):
+        self.id = sc.get_id(self.pub_key)
+        return self.id
+
+    def sortition(self, sc):
+        seed = bytes(sc.randao)
+        vrf_hash, proof = vrf.generate_vrf_proof(self.prv_key, seed)
+        probability = float(COMM_SIZE)/N
+        hash_int = int.from_bytes(vrf_hash, byteorder='big')
+        
+        is_selected = ((hash_int / float(2**256)) <= probability)
+        return (vrf_hash, proof, is_selected)
+        
+    def verify_sortition(self, vrf_hash, proof, pub_key):
+         seed = bytes(sc.randao)
+         return vrf.verify_vrf_proof(pub_key, seed, vrf_hash, proof)
 
 
     
