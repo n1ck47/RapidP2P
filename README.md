@@ -1,1 +1,1 @@
-Integrates with the Blocknative Gas Estimator API to fetch up-to-date gas fee estimates for both Ethereum and Polygon blockchains. This allows for dynamic adjustment of gas fees based on network conditions during simulations.
+
