@@ -1,50 +1,29 @@
+# file: get_gas_fees.py
+
 import requests
 
-def get_blocknative_gas_fees(chain="ethereum"):
-    """
-    Fetches real-time gas fees from the Blocknative Gas Estimator API.
+def get_gas_fees(api_key):
+    url = f"https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey={api_key}"
+    response = requests.get(url)
+    data = response.json()
 
-    Args:
-        chain (str, optional): The blockchain to retrieve gas fees for.
-            Defaults to "ethereum". Supported options include "ethereum"
-            and "polygon".
+    if data['status'] == '1':  # Successful response
+        safe_gas_price = data['result']['SafeGasPrice']
+        propose_gas_price = data['result']['ProposeGasPrice']
+        fast_gas_price = data['result']['FastGasPrice']
+        
+        return {
+            "SafeGasPrice": safe_gas_price,
+            "ProposeGasPrice": propose_gas_price,
+            "FastGasPrice": fast_gas_price
+        }
+    else:
+        raise Exception("Error fetching gas fees from Etherscan")
 
-    Returns:
-        dict: A dictionary containing gas fee estimates for different
-            confirmation timeframes (e.g., "fast", "safeLow", "standard").
-            Keys represent the confirmation speed, and values represent
-            the gas price (in gwei) for that speed.
-
-    Raises:
-        ValueError: If an unsupported chain is provided.
-        requests.exceptions.RequestException: If an error occurs during the API request.
-    """
-
-    supported_chains = ["ethereum", "polygon"]
-    if chain not in supported_chains:
-        raise ValueError(f"Unsupported chain: {chain}. Supported chains: {', '.join(supported_chains)}")
-
-    url = f"https://api.blocknative.com/gasprices/v1/{chain}"
-    headers = {
-        "Authorization": "YOUR_API_KEY"  # Replace with your Blocknative API key
-    }
-
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise an exception for non-200 status codes
-
-        data = response.json()
-        return data["gasPrices"]
-
-    except requests.exceptions.RequestException as e:
-        raise ValueError(f"Error fetching gas fees: {e}") from e
-
-# Example usage (replace YOUR_API_KEY with your actual API key)
-if _name_ == "_main_":
-    try:
-        gas_fees = get_blocknative_gas_fees(chain="ethereum")
-        print("Ethereum Gas Fees:")
-        for speed, price in gas_fees.items():
-            print(f"\t{speed}: {price} gwei")
-    except ValueError as e:
-        print(f"An error occurred: {e}")
+if __name__ == "__main__":
+    # Replace 'YOUR_API_KEY' with your actual Etherscan API key
+    api_key = '7JDC8S1TS4QCWWJ8P7TTR6U7UGBFFFH9R1'
+    gas_fees = get_gas_fees(api_key)
+    print("Safe Gas Price:", gas_fees["SafeGasPrice"])
+    print("Proposed Gas Price:", gas_fees["ProposeGasPrice"])
+    print("Fast Gas Price:", gas_fees["FastGasPrice"])
