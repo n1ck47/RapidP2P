@@ -12,5 +12,5 @@ def verify_vrf_proof(vk: VerifyingKey, message: bytes, vrf_hash: bytes, proof: b
         vk.verify(proof, message, hashfunc=hashlib.sha256)
         computed_hash = hashlib.sha256(proof).digest()
         return computed_hash == vrf_hash
-    except BadSignatureError:
+    except:
         return False
