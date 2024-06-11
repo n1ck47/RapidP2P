@@ -131,9 +131,10 @@ def main():
 
 #     plt.show()
 
-    peer_id = int(random.random() * (N+1))
-    print(peer_id)
-    simulate_itr(10, peer_id)
+    # peer_id = int(random.random() * (N+1))
+    # print(peer_id)
+    # simulate_itr(10, peer_id)
+    simulate_once(env)
 
 
 if __name__ == "__main__":
