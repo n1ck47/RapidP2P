@@ -5,7 +5,7 @@ import copy
 from pprint import pprint
 import hashlib
 
-from constants import COMM_SIZE, N, R_MAX, INTER_TIME, EPOCH_TIME, MIN_BANDWIDTH, MAX_BANDWIDTH
+from constants import COMM_SIZE, N, R_MAX, INTER_TIME, EPOCH_TIME, MIN_BANDWIDTH, MAX_BANDWIDTH, SLOW_PEERS, SLOW_BANDWIDTH, FAST_BANDWIDTH
 from bundle import Message, Bundle
 import vrf
 
@@ -25,6 +25,9 @@ class Peer:
         self.mssg_pool = dict() # epoch to mssg list
         self.is_gen_mssg = False
         self.city_id = random.choice(list(self.city_latency.keys()))
+
+        speed_threshold = np.random.uniform(0, 1)
+        self.is_slow = (speed_threshold <= SLOW_PEERS)
 
     def reset(self, env):
         self.env = env
@@ -110,14 +113,18 @@ class Peer:
 
     # compute latency b/w self and receiver link
     def compute_delay(self, bundle, receiver):  
-        bandwidth = min(self.bandwidth, receiver.bandwidth)
+        # bandwidth = min(self.bandwidth, receiver.bandwidth)
+        bandwidth = FAST_BANDWIDTH
+        if(self.is_slow or receiver.is_slow):
+            bandwidth = SLOW_BANDWIDTH
+
         mssg_size = bundle.mssg.size
         source_city = self.city_id
         dest_city = receiver.city_id
         pij = self.city_latency[source_city][dest_city]
         queuing_delay = mssg_size / (bandwidth*1000)
         latency = pij + queuing_delay
-        print(pij, queuing_delay)
+        # print(pij, queuing_delay)
         return latency
 
     def generate_mssg(self):

@@ -123,7 +123,7 @@ class Contract:
                     if(agg_hash_int < p_agg_hash_int):
                         primary_agg = agg
 
-                print(self.env.now, len(self.aggregators_proof))
+                print(f"Time: {self.env.now}, No of Aggr: {len(self.aggregators_proof)}")
                 self.aggregators_proof.clear()
                 self.randao = primary_agg[2]
                 self.distribute_rewards(primary_agg)
@@ -132,11 +132,12 @@ class Contract:
                 # print(self.get_epoch())
                 epoch_hash = bytes(hashlib.sha256(bytes(self.get_epoch())).digest())
                 new_randao = bytes(a ^ b for a, b in zip(randao, epoch_hash))
-                print('hei')
+                # print('hei')
                 self.randao = new_randao
             yield self.env.timeout(EPOCH_TIME)
 
     def distribute_rewards(self, primary_agg):
+        # print(self.reward_earned)
         agg_id = primary_agg[1]['id']
         # print(self.env.now)
         bundles = primary_agg[0]
@@ -150,7 +151,7 @@ class Contract:
                 self.balances[id] += reward
                 self.reward_earned[id] += reward
             
-            self.reward_earned[agg_id] -= reward
+            # self.reward_earned[agg_id] -= reward
             mssg_originator = bundle.mssg.peer_id
             self.reward_cost[mssg_originator] += R_MAX
             self.old_locked_stakes[mssg_originator] -= R_MAX

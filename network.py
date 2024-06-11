@@ -1,6 +1,8 @@
 import random
 import csv
 
+from constants import MIN_LINKS, MAX_LINKS
+
 def filter_out_city(adjacency_list):
     to_del = []
     for source, _ in adjacency_list.items():
@@ -44,7 +46,7 @@ def create_network(network, next_elms, que, city_latency):
     visited = [False for _ in range(len(network))]
     
     while que:
-        links = random.randint(4, 8)
+        links = random.randint(MIN_LINKS, MAX_LINKS)
         next_elms = random.sample(next_elms, len(next_elms))
         u = que.pop(0)
         visited[u] = True
@@ -66,10 +68,9 @@ def create_network(network, next_elms, que, city_latency):
                 continue
             
             if (v_city_id not in city_latency[u_city_id]):
+                city_latency[u_city_id][v_city_id] = city_latency[v_city_id][u_city_id] 
+            elif (u_city_id not in city_latency[v_city_id]):
                 city_latency[v_city_id][u_city_id] = city_latency[u_city_id][v_city_id]
-            
-            if (u_city_id not in city_latency[v_city_id]):
-                city_latency[u_city_id][v_city_id] = city_latency[v_city_id][u_city_id]
 
             if (len(network[v].neighbours) < links and len(network[u].neighbours) < links):
                 network[v].neighbours.append(u)
@@ -108,15 +109,16 @@ def reset_network(network):
 
 def check_links(network):
     for i in range(1, len(network)):
-        if len(network[i].neighbours) < 4:
-            print(f"peer {i} has less than 4 connections")
+        if len(network[i].neighbours) < MIN_LINKS:
+            print(f"peer {i} has less than {MIN_LINKS} connections")
             return False
-    print("All peers have at least 4 connections")
+    print(f"All peers have at least {MIN_LINKS} connections")
     return True
 
 def print_network(network):
     for peer in network:
-        print(f"peer {peer.id} ({peer.bandwidth:.2f} Mbps): {peer.neighbours}")
+        print(f"peer {peer.id} (Slow={peer.is_slow}): {peer.neighbours}")
+        # print(f"peer {peer.id} ({peer.bandwidth:.2f} Mbps): {peer.neighbours}")
 
 def finalise_network(n, network, city_latency):
     attempt = 0
@@ -129,20 +131,3 @@ def finalise_network(n, network, city_latency):
             print_network(network)
             return
     print("Failed to create a connected network after 100 attempts")
-
-
-# file_path = './data/pings-2020-07-19-2020-07-20.csv'
-# adjacency_list = inter_city_latency(file_path)
-# filter_out_city(adjacency_list)
-
-# file_path = './data/servers.csv'
-# servers = server_data(file_path)
-# print(servers)
-# print(len(adjacency_list))
-# Print the adjacency list
-
-# for source, edges in adjacency_list.items():
-#     try:
-#         x = adjacency_list[source][source]
-#     except:
-#         print('hey', source)

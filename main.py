@@ -41,10 +41,16 @@ def simulate_once(env):
     env.run(until=SIMULATION_TIME)
 
     data = list()
-    header = ["Bandwidth", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost"]
+    # header = ["Bandwidth", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost"]
+    header = ["SLOW?", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
     data.append(header)
     for i in range(len(sc.balances)):
-        row = [Peer.network[i].bandwidth, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i]]
+        slow_neigh = 0
+        total_neigh = len(Peer.network[i].neighbours)
+        for neigh in Peer.network[i].neighbours:
+            slow_neigh += Peer.network[neigh].is_slow
+        # row = [Peer.network[i].bandwidth, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i]]
+        row = [Peer.network[i].is_slow, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i], total_neigh, slow_neigh/total_neigh]
         data.append(row)
 
     current_time = datetime.now()
@@ -102,15 +108,9 @@ def main():
         adjacency_list[peer.id] = []
         for nei in peer.neighbours:
             adjacency_list[peer.id].append(nei)
-    print("dis: ", find_longest_shortest_path(adjacency_list))
-#     # adjacency_list = {
-#     #     'A': ['B', 'C'],
-#     #     'B': ['A', 'D', 'E'],
-#     #     'C': ['A', 'F'],
-#     #     'D': ['B'],
-#     #     'E': ['B', 'F'],
-#     #     'F': ['C', 'E']
-#     # }
+    print("Longest Shortest Distance: ", find_longest_shortest_path(adjacency_list))
+
+    simulate_once(env)
 
 #     # Define node positions manually
 #     np.random.seed(42)  # For reproducibility
@@ -140,7 +140,7 @@ def main():
     # peer_id = int(random.random() * (N+1))
     # print(peer_id)
     # simulate_itr(10, peer_id)
-    simulate_once(env)
+    
 
 
 if __name__ == "__main__":
