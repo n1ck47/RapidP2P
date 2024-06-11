@@ -95,7 +95,7 @@ def main():
     # server_file = './data/servers.csv'
     # servers = get_server_data(server_file)
 
-    latency_file = './data/pings-2020-07-19-2020-07-20.csv'
+    latency_file = './data/pings-2020-07-19-2020-07-20.csv' #source: https://wp-public.s3.amazonaws.com/pings/pings-2020-07-19-2020-07-20.csv.gz
     city_latency = inter_city_latency(latency_file)
     Peer.city_latency = city_latency
 
