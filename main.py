@@ -1,5 +1,5 @@
 from constants import N, SIMULATION_TIME, EPOCH_TIME
-from network import finalise_network
+from network import finalise_network, get_server_data, inter_city_latency, filter_out_city
 from contract import Contract
 from peer import Peer
 from helper import find_longest_shortest_path
@@ -86,10 +86,16 @@ def simulate_itr(itr, peer_id):
 def main():
     env = simpy.Environment()
     sc = Contract(env)
+    # server_file = './data/servers.csv'
+    # servers = get_server_data(server_file)
+
+    latency_file = './data/pings-2020-07-19-2020-07-20.csv'
+    city_latency = inter_city_latency(latency_file)
+    Peer.city_latency = city_latency
 
     Peer.contract = sc
     Peer.network = initialize_peers(env)
-    finalise_network(N, Peer.network)
+    finalise_network(N, Peer.network, Peer.city_latency)
 
     adjacency_list = dict()
     for peer in Peer.network:

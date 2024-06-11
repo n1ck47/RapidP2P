@@ -12,6 +12,7 @@ import vrf
 class Peer:
     network = None
     contract = None
+    city_latency = None
 
     def __init__(self, env):
         self.env = env
@@ -23,6 +24,7 @@ class Peer:
         self.bundle_pool = dict()
         self.mssg_pool = dict() # epoch to mssg list
         self.is_gen_mssg = False
+        self.city_id = random.choice(list(self.city_latency.keys()))
 
     def reset(self, env):
         self.env = env
@@ -110,11 +112,12 @@ class Peer:
     def compute_delay(self, bundle, receiver):  
         bandwidth = min(self.bandwidth, receiver.bandwidth)
         mssg_size = bundle.mssg.size
-        # ρij = random.uniform(0.2, 0.25)
-        # dij = np.random.exponential(scale= 96/(bandwidth*1000)) # 96Kbits
-        # latency = ρij + (mssg_size / (bandwidth*1000)) + dij
-        latency = (mssg_size / (bandwidth*1000))
-        # print(ρij,(mssg_size / (bandwidth*1000)), dij)
+        source_city = self.city_id
+        dest_city = receiver.city_id
+        pij = self.city_latency[source_city][dest_city]
+        queuing_delay = mssg_size / (bandwidth*1000)
+        latency = pij + queuing_delay
+        print(pij, queuing_delay)
         return latency
 
     def generate_mssg(self):

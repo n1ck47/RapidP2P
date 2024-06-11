@@ -1,6 +1,46 @@
 import random
+import csv
 
-def create_network(network, next_elms, que):
+def filter_out_city(adjacency_list):
+    to_del = []
+    for source, _ in adjacency_list.items():
+        if source not in adjacency_list[source]:
+            to_del.append(source)
+    
+    for id in to_del:
+        del adjacency_list[id]
+
+def inter_city_latency(file_path):
+    adjacency_list = {}
+
+    with open(file_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            source = row['source']
+            destination = row['destination']
+            avg_latency = float(row['avg'])
+            
+            if source not in adjacency_list:
+                adjacency_list[source] = {}
+            
+            adjacency_list[source][destination] = avg_latency
+    
+    return adjacency_list
+
+def get_server_data(file_path):
+    servers = {}
+
+    with open(file_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            id = row['id']
+            city = row['location']
+            
+            servers[id] = city
+    
+    return servers
+
+def create_network(network, next_elms, que, city_latency):
     visited = [False for _ in range(len(network))]
     
     while que:
@@ -18,6 +58,19 @@ def create_network(network, next_elms, que):
                 break
 
             v = next_elms[i]
+            u_city_id = network[u].city_id
+            v_city_id = network[v].city_id
+
+            if (v_city_id not in city_latency[u_city_id]) and (u_city_id not in city_latency[v_city_id]):
+                i+=1
+                continue
+            
+            if (v_city_id not in city_latency[u_city_id]):
+                city_latency[v_city_id][u_city_id] = city_latency[u_city_id][v_city_id]
+            
+            if (u_city_id not in city_latency[v_city_id]):
+                city_latency[u_city_id][v_city_id] = city_latency[v_city_id][u_city_id]
+
             if (len(network[v].neighbours) < links and len(network[u].neighbours) < links):
                 network[v].neighbours.append(u)
                 network[u].neighbours.append(v)
@@ -65,14 +118,31 @@ def print_network(network):
     for peer in network:
         print(f"peer {peer.id} ({peer.bandwidth:.2f} Mbps): {peer.neighbours}")
 
-def finalise_network(n, network):
+def finalise_network(n, network, city_latency):
     attempt = 0
     while attempt < 100:
         attempt += 1
         print(f"Attempt {attempt}: Creating network")
         reset_network(network)
-        create_network(network, list(range(n)), [0])
+        create_network(network, list(range(n)), [0], city_latency)
         if is_connected(network) and check_links(network):
             print_network(network)
             return
     print("Failed to create a connected network after 100 attempts")
+
+
+# file_path = './data/pings-2020-07-19-2020-07-20.csv'
+# adjacency_list = inter_city_latency(file_path)
+# filter_out_city(adjacency_list)
+
+# file_path = './data/servers.csv'
+# servers = server_data(file_path)
+# print(servers)
+# print(len(adjacency_list))
+# Print the adjacency list
+
+# for source, edges in adjacency_list.items():
+#     try:
+#         x = adjacency_list[source][source]
+#     except:
+#         print('hey', source)
