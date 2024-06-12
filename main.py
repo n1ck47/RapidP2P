@@ -3,6 +3,7 @@ from network import finalise_network, get_server_data, inter_city_latency, filte
 from contract import Contract
 from peer import Peer
 from helper import find_longest_shortest_path
+import vrf
 
 import simpy
 from pprint import pprint
@@ -30,11 +31,20 @@ def reset_peers(network, env):
 
 def simulate_once(env):
     sc = Peer.contract
+    # p1 = Peer.network[0]
+    # x = p1.sortition()
+    # print(x)
+    # y = sc.verify_sortition(x[0],x[1], p1.pub_key)
+    # y = vrf.verify_vrf_proof(p1.pub_key, sc.randao, x[0], x[1])
+    # print(y)
+
+    # return
     for peer in Peer.network:
         # if(i%2):
         env.process(peer.generate_mssg())
         peer.is_gen_mssg = True
-        env.process(peer.run())
+        if(Peer.contract.sortition or peer.id == Peer.contract.primary):
+            env.process(peer.run())
         
     env.process(Peer.contract.get_primary_agg())
 

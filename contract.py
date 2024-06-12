@@ -5,6 +5,7 @@ from gas_fees import get_gas_fees
 import copy
 import hashlib
 from pprint import pprint
+import random
 
 class Contract:
     def __init__(self, env):
@@ -21,6 +22,8 @@ class Contract:
         self.aggregators_proof = list()
         self.gas_cost = []
         self.gas = int(get_gas_fees(API_KEY)['ProposeGasPrice'])
+        self.sortition = True
+        self.primary = random.choice(list(range(N)))
 
     def reset(self, env):
         l = len(self.balances)
@@ -38,9 +41,9 @@ class Contract:
         return int(current_time//EPOCH_TIME + 1)
 
     def assign_id(self, pub_key):
-        pub_key = str(pub_key)
-        if(pub_key in self.mapping_hash):
-            return self.mapping_hash[pub_key]
+        pub_key_str = str(pub_key)
+        if(pub_key_str in self.mapping_hash):
+            return self.mapping_hash[pub_key_str]
         self.last_id += 1
         self.mapping.append(pub_key)
         self.balances.append(BALANCE)
@@ -49,7 +52,8 @@ class Contract:
         self.reward_cost.append(0)
         self.gas_cost.append(0)
         self.reward_earned.append(0)
-        self.mapping_hash[pub_key] = self.last_id
+        self.mapping_hash[pub_key_str] = self.last_id
+        # print(self.mapping_hash)
         return self.last_id
 
     def get_id(self, pub_key):
@@ -85,7 +89,9 @@ class Contract:
     
     def verify_sortition(self, vrf_hash, proof, pub_key):
         seed = bytes(self.randao)
+        # print('aa', seed == seeda)
         is_valid = vrf.verify_vrf_proof(pub_key, seed, vrf_hash, proof)
+        # print(is_valid)
         if not is_valid:
             return False
 
@@ -114,12 +120,16 @@ class Contract:
                     agg_proof = agg[1]
                     # print(agg_proof)
                     pub_key = self.mapping[agg_proof['id']]
+                    # print(agg[4])
+                    # print(self.mapping_hash)
+                    # print('key', pub_key==agg[4], self.mapping_hash[str(agg[4])], agg_proof['id'])
                     is_valid = self.verify_sortition(agg_proof['vrf_hash'], agg_proof['proof'], pub_key)
-                    if not is_valid:
+                    # print(is_valid)
+                    if(self.sortition and not is_valid):
                         continue
                     
-                    agg_hash_int = int.from_bytes(agg_proof.vrf_hash, byteorder='big')
-                    p_agg_hash_int = int.from_bytes(primary_agg[1].vrf_hash, byteorder='big')
+                    agg_hash_int = int.from_bytes(agg_proof['vrf_hash'], byteorder='big')
+                    p_agg_hash_int = int.from_bytes(primary_agg[1]['vrf_hash'], byteorder='big')
                     if(agg_hash_int < p_agg_hash_int):
                         primary_agg = agg
 

@@ -9,6 +9,7 @@ from constants import COMM_SIZE, N, R_MAX, INTER_TIME, EPOCH_TIME, MIN_BANDWIDTH
 from bundle import Message, Bundle
 import vrf
 
+
 class Peer:
     network = None
     contract = None
@@ -104,7 +105,7 @@ class Peer:
                 yield self.env.timeout(EPOCH_TIME)
                 continue
             (vrf_hash, proof, is_selected) = self.sortition()
-            if(is_selected):
+            if(is_selected or self.contract.sortition==False):
                 self.env.process(self.aggregator_operation(vrf_hash, proof))
                 yield self.env.timeout(EPOCH_TIME)
             else:
