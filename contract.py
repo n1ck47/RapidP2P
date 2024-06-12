@@ -23,7 +23,7 @@ class Contract:
         self.gas_cost = []
         self.gas = 1#int(get_gas_fees(API_KEY)['ProposeGasPrice'])
         self.sortition = True
-        self.primary = random.choice(list(range(N)))
+        self.primary = random.choice(list(range(N))) # if sortition is false
 
     def reset(self, env):
         l = len(self.balances)

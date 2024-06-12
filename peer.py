@@ -125,7 +125,7 @@ class Peer:
         pij = self.city_latency[source_city][dest_city]/1000
         queuing_delay = mssg_size / (bandwidth*1000)
         latency = pij + queuing_delay
-        print(pij, queuing_delay)
+        # print(pij, queuing_delay)
         return latency
 
     def generate_mssg(self):

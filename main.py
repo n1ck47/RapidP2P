@@ -69,19 +69,43 @@ def simulate_once(env):
         writer = csv.writer(csvfile)
         writer.writerows(data)
 
-def simulate_itr(itr, peer_id):
-    band = Peer.network[0].bandwidth
+def simulate_itr(itr):
+    peer_id = 0
+    flag = True
+    slow_count = 0
+    # while(not Peer.network[peer_id].is_slow or flag):
+    #     flag = True
+    #     peer_id = random.choice(list(range(N)))
+    #     slow_count = 0
+    #     for neigh in Peer.network[peer_id].neighbours:
+    #         if not Peer.network[neigh].is_slow:
+    #             flag = False
+    #         else:
+    #             slow_count+=1
+    while(Peer.network[peer_id].is_slow or flag):
+        flag = True
+        peer_id = random.choice(list(range(N)))
+        slow_count = 0
+        for neigh in Peer.network[peer_id].neighbours:
+            if not Peer.network[neigh].is_slow:
+                flag = False
+            else:
+                slow_count+=1
+
     current_time = datetime.now()
     file_path = "./output/"+str(current_time.strftime("%d_%m_%Y_%H_%M_%S"))+".csv"
     
     data = list()
-    header = ["Bandwidth", "Reward Earned"]
+    header = ["Reward Earned", "Slow neighbours"]
     data.append(header)
-    for j in range(1, itr+1):
+    for j in range(itr):
         env = simpy.Environment()
         Peer.contract.reset(env)
         sc = Peer.contract
-        Peer.network[peer_id].bandwidth = band*j
+        if j==1:
+            # Peer.network[peer_id].is_slow = False
+            Peer.network[peer_id].is_slow = True
+
         reset_peers(Peer.network, env)
         for peer in Peer.network:
             env.process(peer.generate_mssg())
@@ -92,7 +116,7 @@ def simulate_itr(itr, peer_id):
 
         env.run(until=SIMULATION_TIME)
 
-        row = [Peer.network[peer_id].bandwidth, sc.reward_cost[peer_id]]
+        row = [sc.reward_cost[peer_id], slow_count/len(Peer.network[peer_id].neighbours)]
         data.append(row)
 
     with open(file_path, 'w', newline='') as csvfile:
@@ -121,6 +145,7 @@ def main():
     print("Longest Shortest Distance: ", find_longest_shortest_path(adjacency_list))
 
     simulate_once(env)
+    # simulate_itr(2)
 
 #     # Define node positions manually
 #     np.random.seed(42)  # For reproducibility
