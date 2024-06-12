@@ -11,7 +11,7 @@ def read_data_from_csv(file_path):
     with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            bandwidth.append(float(row['Bandwidth']))
+            bandwidth.append(int(row['SLOW?']))
             reward.append(float(row['Reward Earned']))
             gas_cost.append(float(row['Gas Cost']))
             profit.append(reward[-1] - gas_cost[-1])
@@ -20,13 +20,13 @@ def read_data_from_csv(file_path):
 # Function to plot bar graph
 def plot_bar_graph(bandwidth, reward):
     plt.bar(bandwidth, reward, color='skyblue')
-    plt.xlabel('Bandwidth')
+    plt.xlabel('SLOW?')
     plt.ylabel('Reward')
     plt.title('Bandwidth vs Reward')
     plt.show()
 
 # CSV file path
-file_path = './output/10_06_2024_20_02_57.csv'
+file_path = './output/12_06_2024_13_35_05.csv'
 
 # Read data from CSV
 bandwidth, reward = read_data_from_csv(file_path)

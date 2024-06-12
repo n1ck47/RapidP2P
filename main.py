@@ -52,7 +52,7 @@ def simulate_once(env):
 
     data = list()
     # header = ["Bandwidth", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost"]
-    header = ["SLOW?", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
+    header = ["SLOW?", "Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
     data.append(header)
     for i in range(len(sc.balances)):
         slow_neigh = 0
@@ -60,7 +60,7 @@ def simulate_once(env):
         for neigh in Peer.network[i].neighbours:
             slow_neigh += Peer.network[neigh].is_slow
         # row = [Peer.network[i].bandwidth, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i]]
-        row = [Peer.network[i].is_slow, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i], total_neigh, slow_neigh/total_neigh]
+        row = [int(Peer.network[i].is_slow), sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i], total_neigh, slow_neigh/total_neigh]
         data.append(row)
 
     current_time = datetime.now()

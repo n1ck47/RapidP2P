@@ -21,7 +21,7 @@ class Contract:
         self.env = env
         self.aggregators_proof = list()
         self.gas_cost = []
-        self.gas = int(get_gas_fees(API_KEY)['ProposeGasPrice'])
+        self.gas = 1#int(get_gas_fees(API_KEY)['ProposeGasPrice'])
         self.sortition = True
         self.primary = random.choice(list(range(N)))
 
