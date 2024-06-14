@@ -1,12 +1,13 @@
-from constants import MSSG_SIZE
+from constants import MSSG_SIZE, MIN_MSG_SIZE, MAX_MSG_SIZE
 
 import uuid
+import numpy as np
 
 class Message:
     def __init__(self, data, peer_id, epoch):
         self.uuid = uuid.uuid4()
         self.data = data
-        self.size = MSSG_SIZE
+        self.size = np.random.uniform(MIN_MSG_SIZE, MAX_MSG_SIZE)
         self.peer_id = peer_id
         self.epoch = epoch
 

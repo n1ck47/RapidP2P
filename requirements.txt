@@ -1,1 +1,4 @@
 ecdsa
+numpy
+simpy
+matplotlib

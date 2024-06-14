@@ -5,7 +5,7 @@ import copy
 from pprint import pprint
 import hashlib
 
-from constants import COMM_SIZE, N, R_MAX, INTER_TIME, EPOCH_TIME, MIN_BANDWIDTH, MAX_BANDWIDTH, SLOW_PEERS, SLOW_BANDWIDTH, FAST_BANDWIDTH
+from constants import COMM_SIZE, N, R_MAX, INTER_TIME, EPOCH_TIME, MIN_BANDWIDTH, MAX_BANDWIDTH, SLOW_PEERS, SLOW_BANDWIDTH, FAST_BANDWIDTH, RELAYER_ONLY, SLOW_PEERS
 from bundle import Message, Bundle
 import vrf
 
@@ -26,9 +26,10 @@ class Peer:
         self.mssg_pool = dict() # epoch to mssg list
         self.is_gen_mssg = False
         self.city_id = random.choice(list(self.city_latency.keys()))
-
+        relayer_threshold = np.random.uniform(0, 1)
+        self.relayer_only = (relayer_threshold < RELAYER_ONLY)
         speed_threshold = np.random.uniform(0, 1)
-        self.is_slow = (speed_threshold <= SLOW_PEERS)
+        self.is_slow = (speed_threshold < SLOW_PEERS)
 
     def reset(self, env):
         self.env = env

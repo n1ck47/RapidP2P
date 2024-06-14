@@ -1,4 +1,4 @@
-from constants import N, SIMULATION_TIME, EPOCH_TIME
+from constants import N, SIMULATION_TIME, EPOCH_TIME, RELAYER_ONLY, SLOW_PEERS
 from network import finalise_network, get_server_data, inter_city_latency, filter_out_city
 from contract import Contract
 from peer import Peer
@@ -41,7 +41,8 @@ def simulate_once(env):
     # return
     for peer in Peer.network:
         # if(i%2):
-        env.process(peer.generate_mssg())
+        if(not peer.relayer_only):
+            env.process(peer.generate_mssg())
         peer.is_gen_mssg = True
         if(Peer.contract.sortition or peer.id == Peer.contract.primary):
             env.process(peer.run())
@@ -52,7 +53,7 @@ def simulate_once(env):
 
     data = list()
     # header = ["Bandwidth", "Final balance", "Reward Earned", "Reward Cost", "Gas Cost"]
-    header = ["SLOW?", "Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
+    header = ["SLOW?", "Relayer Only?", "Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
     data.append(header)
     for i in range(len(sc.balances)):
         slow_neigh = 0
@@ -60,11 +61,12 @@ def simulate_once(env):
         for neigh in Peer.network[i].neighbours:
             slow_neigh += Peer.network[neigh].is_slow
         # row = [Peer.network[i].bandwidth, sc.balances[i], sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i]]
-        row = [int(Peer.network[i].is_slow), sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i], total_neigh, slow_neigh/total_neigh]
+        row = [int(Peer.network[i].is_slow), int(Peer.network[i].relayer_only), sc.reward_earned[i], sc.reward_cost[i], sc.gas_cost[i], total_neigh, slow_neigh/total_neigh]
         data.append(row)
 
     current_time = datetime.now()
-    file_path = "./output/"+str(current_time.strftime("%d_%m_%Y_%H_%M_%S"))+".csv"
+    # file_path = f"./output/{str(SLOW_PEERS)}/{str(current_time.strftime("%d_%m_%Y_%H_%M_%S"))}.csv"
+    file_path = "./output/" + str(SLOW_PEERS) + "/" + str(current_time.strftime("%d_%m_%Y_%H_%M_%S")) + ".csv"
     with open(file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(data)
@@ -73,16 +75,9 @@ def simulate_itr(itr):
     peer_id = 0
     flag = True
     slow_count = 0
-    # while(not Peer.network[peer_id].is_slow or flag):
-    #     flag = True
-    #     peer_id = random.choice(list(range(N)))
-    #     slow_count = 0
-    #     for neigh in Peer.network[peer_id].neighbours:
-    #         if not Peer.network[neigh].is_slow:
-    #             flag = False
-    #         else:
-    #             slow_count+=1
-    while(Peer.network[peer_id].is_slow or flag):
+
+    # slow to fast
+    while(not Peer.network[peer_id].is_slow or flag):
         flag = True
         peer_id = random.choice(list(range(N)))
         slow_count = 0
@@ -92,11 +87,22 @@ def simulate_itr(itr):
             else:
                 slow_count+=1
 
+    #fast to slow
+    # while(Peer.network[peer_id].is_slow or flag):
+    #     flag = True
+    #     peer_id = random.choice(list(range(N)))
+    #     slow_count = 0
+    #     for neigh in Peer.network[peer_id].neighbours:
+    #         if not Peer.network[neigh].is_slow:
+    #             flag = False
+    #         else:
+    #             slow_count+=1
+
     current_time = datetime.now()
-    file_path = "./output/"+str(current_time.strftime("%d_%m_%Y_%H_%M_%S"))+".csv"
-    
+    file_path = "./output/" + str(SLOW_PEERS) + "/" + str(current_time.strftime("%d_%m_%Y_%H_%M_%S")) + ".csv"
+ 
     data = list()
-    header = ["Reward Earned", "Slow neighbours"]
+    header = ["Reward Earned", "Reward Cost", "Gas Cost", "Total Neighbours", "Slow Neighbours"]
     data.append(header)
     for j in range(itr):
         env = simpy.Environment()
@@ -116,7 +122,7 @@ def simulate_itr(itr):
 
         env.run(until=SIMULATION_TIME)
 
-        row = [sc.reward_cost[peer_id], slow_count/len(Peer.network[peer_id].neighbours)]
+        row = [sc.reward_earned[peer_id], sc.reward_cost[peer_id], sc.gas_cost[peer_id], len(Peer.network[peer_id].neighbours), slow_count/len(Peer.network[peer_id].neighbours)]
         data.append(row)
 
     with open(file_path, 'w', newline='') as csvfile:
@@ -129,7 +135,7 @@ def main():
     # server_file = './data/servers.csv'
     # servers = get_server_data(server_file)
 
-    latency_file = './data/pings-2020-07-19-2020-07-20.csv' #source: https://wp-public.s3.amazonaws.com/pings/pings-2020-07-19-2020-07-20.csv.gz
+    latency_file = './data/pings.csv' #source: https://wp-public.s3.amazonaws.com/pings/pings-2020-07-19-2020-07-20.csv.gz
     city_latency = inter_city_latency(latency_file)
     Peer.city_latency = city_latency
 
@@ -144,8 +150,8 @@ def main():
             adjacency_list[peer.id].append(nei)
     print("Longest Shortest Distance: ", find_longest_shortest_path(adjacency_list))
 
-    simulate_once(env)
-    # simulate_itr(2)
+    # simulate_once(env)
+    simulate_itr(2)
 
 #     # Define node positions manually
 #     np.random.seed(42)  # For reproducibility
